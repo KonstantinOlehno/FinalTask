@@ -20,8 +20,6 @@ import java.util.concurrent.locks.ReentrantLock;
 public class CustomConnectionPool {
     private static final Logger logger = LogManager.getLogger();
 
-    private static final String DB_PROPERTIES = "database/db.properties";
-    private static final String DB_POOLSIZE = "poolsize";
     private final static int POOL_SIZE = 5;
 
     private static CustomConnectionPool instance;
