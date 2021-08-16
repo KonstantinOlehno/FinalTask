@@ -30,7 +30,6 @@ public class CustomConnectionPool {
     private final BlockingQueue<ProxyConnection> freeConnections;
     private final Queue<ProxyConnection> occupiedConnections;
 
-    // private int connectionsNumber;
 
     public CustomConnectionPool() {
 
