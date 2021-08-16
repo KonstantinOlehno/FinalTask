@@ -29,10 +29,12 @@ public class ConnectionFactory {
 
     static {
         /*ResourceBundle resourceBundle = ResourceBundle.getBundle(DB_PROPERTIES,Locale.ENGLISH);
+
         DB_URL = resourceBundle.getString(PROPERTY_URL);
         DB_DRIVER = resourceBundle.getString(PROPERTY_DRIVER);
         DB_USER = resourceBundle.getString(PROPERTY_USER);
         DB_PASSWORD = resourceBundle.getString(PROPERTY_PASSWORD);
+
         try {
             Class.forName(DB_DRIVER);
         } catch (ClassNotFoundException e) {
@@ -43,10 +45,12 @@ public class ConnectionFactory {
         try {
             properties.load(ConnectionFactory.class.getClassLoader()
                     .getResourceAsStream(DB_PROPERTIES));
+
             DB_URL = properties.getProperty(PROPERTY_URL);
             DB_USER = properties.getProperty(PROPERTY_USER);
             DB_DRIVER = properties.getProperty(PROPERTY_DRIVER);
             DB_PASSWORD = properties.getProperty(PROPERTY_PASSWORD);
+
             Class.forName(DB_DRIVER);
         } catch (IOException | ClassNotFoundException e) {
             logger.log(Level.ERROR, "Can`t connect to database ");

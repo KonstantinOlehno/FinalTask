@@ -35,14 +35,6 @@ public class CustomConnectionPool {
     // private int connectionsNumber;
 
     public CustomConnectionPool() {
-         /*try {
-            ResourceBundle resourceBundle = ResourceBundle.getBundle(DB_PROPERTIES);
-            try {
-                connectionsNumber = Integer.parseInt(resourceBundle.getString(DB_POOLSIZE));
-            } catch (NumberFormatException e) {
-                connectionsNumber = DEFAULT_POOL_SIZE;
-                logger.warn("Incorrect number of connections, set default = {}", connectionsNumber);
-            }*/
 
         freeConnections = new LinkedBlockingQueue<>(POOL_SIZE);
         occupiedConnections = new ArrayDeque<>();
@@ -58,7 +50,7 @@ public class CustomConnectionPool {
         }
     }
 
-    public static CustomConnectionPool getInstance(){
+    public static CustomConnectionPool getInstance() {
         if (!isCreated.get()) {
             locker.lock();
             try {
@@ -74,41 +66,43 @@ public class CustomConnectionPool {
         return instance;
     }
 
-    public Connection getConnection(){
+    public Connection getConnection() {
         ProxyConnection connection = null;
-        try{
+        try {
             connection = freeConnections.take();
             occupiedConnections.offer(connection);
         } catch (InterruptedException e) {
-            logger.log(Level.ERROR,"Connection is interrupted");
-           // throw new DaoException("Connection is interrupted" + e);
+            logger.log(Level.ERROR, "Connection is interrupted");
+            // throw new DaoException("Connection is interrupted" + e);
         }
         return connection;
     }
 
-    public void releaseConnection(ProxyConnection connection){
-        if(connection.getClass() == ProxyConnection.class){
+    public void releaseConnection(ProxyConnection connection) {
+        if (connection.getClass() == ProxyConnection.class) {
             freeConnections.remove(connection);
             occupiedConnections.offer(connection);
-        }else {
-            logger.log(Level.ERROR,"Wrong connection");
+        } else {
+            logger.log(Level.ERROR, "Wrong connection");
         }
     }
-    public void destroyConnectionPool(){
-        for(int i =0;i<POOL_SIZE;i++){
+
+    public void destroyConnectionPool() {
+        for (int i = 0; i < POOL_SIZE; i++) {
             try {
                 freeConnections.take().reallyClose();
             } catch (SQLException | InterruptedException e) {
-                logger.log(Level.ERROR,"Can`t close connection pool");
+                logger.log(Level.ERROR, "Can`t close connection pool");
             }
         }
     }
-    public void deregisterDriver(){
+
+    public void deregisterDriver() {
         DriverManager.getDrivers().asIterator().forEachRemaining(driver -> {
             try {
                 DriverManager.deregisterDriver(driver);
-            }catch (SQLException e){
-                logger.log(Level.ERROR,"Can`t deregistered driver");
+            } catch (SQLException e) {
+                logger.log(Level.ERROR, "Can`t deregistered driver");
                 //throw new DaoException("Can`t deregistered driver" + e);
             }
         });
