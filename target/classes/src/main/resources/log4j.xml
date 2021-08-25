@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration package="log4j.test"
+               status="WARN">
+    <Properties>
+        <property name="pattern_file">%d{yyyy-MM-dd HH:mm:ss} [%t] %-5level %logger{5} - %msg%n</property>
+    </Properties>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{5} - %msg%n"/>
+        </Console>
+
+        <RollingFile name="FileRolling"
+                     fileName="logs/text_roll.log" append="true"
+                     filePattern="logs/${date:yyyy-MM-dd}/%d{yyyy-MM-dd_HH-mm}_%i.log">
+            <PatternLayout pattern="${pattern_file}"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy
+                        size="10 KB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="log4j.test.Log4jTest" level="trace">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="Log_File" level="trace" additivity="false">
+            <AppenderRef ref="File1"/>
+        </Logger>
+        <Root level="trace">
+            <AppenderRef ref="Console" level="trace"/>
+            <AppenderRef ref="FileRolling"/>
+        </Root>
+    </Loggers>
+</Configuration>
