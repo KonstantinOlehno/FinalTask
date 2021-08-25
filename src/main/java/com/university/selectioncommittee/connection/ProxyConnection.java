@@ -1,16 +1,35 @@
 package com.university.selectioncommittee.connection;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.sql.*;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
-public class ProxyConnection implements Connection {
+class ProxyConnection implements Connection {
+
+    private static final Logger logger = LogManager.getLogger();
 
     private Connection connection;
 
-    public ProxyConnection(Connection connection) {
+    ProxyConnection(Connection connection) {
         this.connection = connection;
+    }
+
+    @Override
+    public void close() throws SQLException {
+      CustomConnectionPool.getInstance().releaseConnection(this);
+    }
+
+    void reallyClose() {
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            logger.log(Level.ERROR, "Can`t close connection");
+        }
     }
 
     @Override
@@ -53,14 +72,6 @@ public class ProxyConnection implements Connection {
         connection.rollback();
     }
 
-    @Override
-    public void close() throws SQLException {
-        CustomConnectionPool.getInstance().releaseConnection(this);
-    }
-
-    void reallyClose() throws SQLException{
-        connection.close();
-    }
 
     @Override
     public boolean isClosed() throws SQLException {

@@ -1,7 +1,5 @@
 package com.university.selectioncommittee.connection;
 
-import com.university.selectioncommittee.exception.DaoException;
-import com.university.selectioncommittee.util.ConnectionFactory;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,22 +26,26 @@ public class CustomConnectionPool {
     private static final ReentrantLock locker = new ReentrantLock(true);
 
     private final BlockingQueue<ProxyConnection> freeConnections;
-    private final Queue<ProxyConnection> occupiedConnections;
+    private final BlockingQueue<ProxyConnection> occupiedConnections;
 
 
-    public CustomConnectionPool() {
+    private CustomConnectionPool() {
 
         freeConnections = new LinkedBlockingQueue<>(POOL_SIZE);
-        occupiedConnections = new ArrayDeque<>();
+        occupiedConnections = new LinkedBlockingQueue<>();
 
         for (int i = 0; i < POOL_SIZE; i++) {
             try {
                 ProxyConnection connection = new ProxyConnection(ConnectionFactory.getConnection());
-                freeConnections.offer(connection);
+                freeConnections.add(connection);
             } catch (SQLException e) {
                 logger.log(Level.FATAL, "Can`t create connections ");
-                throw new RuntimeException("Can`t create connections" + e);
+                throw new ExceptionInInitializerError("Can`t create connections" + e);
             }
+        }
+        if(freeConnections.isEmpty()){
+            logger.log(Level.FATAL, "Empty pool");
+            throw new RuntimeException("Empty pool");
         }
     }
 
@@ -67,20 +69,23 @@ public class CustomConnectionPool {
         ProxyConnection connection = null;
         try {
             connection = freeConnections.take();
-            occupiedConnections.offer(connection);
+            occupiedConnections.put(connection);
         } catch (InterruptedException e) {
             logger.log(Level.ERROR, "Connection is interrupted");
-            // throw new DaoException("Connection is interrupted" + e);
+
         }
         return connection;
     }
 
     public void releaseConnection(ProxyConnection connection) {
         if (connection.getClass() == ProxyConnection.class) {
-            freeConnections.remove(connection);
-            occupiedConnections.offer(connection);
+            try {
+                freeConnections.put(connection);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         } else {
-            logger.log(Level.ERROR, "Wrong connection");
+            logger.log(Level.ERROR, "Can`t release connection ");
         }
     }
 
@@ -88,19 +93,19 @@ public class CustomConnectionPool {
         for (int i = 0; i < POOL_SIZE; i++) {
             try {
                 freeConnections.take().reallyClose();
-            } catch (SQLException | InterruptedException e) {
+            } catch (InterruptedException e) {
                 logger.log(Level.ERROR, "Can`t close connection pool");
             }
         }
+        deregisterDriver();
     }
 
-    public void deregisterDriver() {
+    private void deregisterDriver() {
         DriverManager.getDrivers().asIterator().forEachRemaining(driver -> {
             try {
                 DriverManager.deregisterDriver(driver);
             } catch (SQLException e) {
                 logger.log(Level.ERROR, "Can`t deregistered driver");
-                //throw new DaoException("Can`t deregistered driver" + e);
             }
         });
     }

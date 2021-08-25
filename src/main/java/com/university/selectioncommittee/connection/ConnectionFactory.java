@@ -1,20 +1,16 @@
-package com.university.selectioncommittee.util;
+package com.university.selectioncommittee.connection;
 
-import com.university.selectioncommittee.exception.DaoException;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Locale;
 import java.util.Properties;
-import java.util.ResourceBundle;
 
-public class ConnectionFactory {
+class ConnectionFactory {
     private static final Logger logger = LogManager.getLogger();
     private static final Properties properties = new Properties();
     private static final String DB_PROPERTIES = "database/db.properties";
@@ -54,6 +50,7 @@ public class ConnectionFactory {
             Class.forName(DB_DRIVER);
         } catch (IOException | ClassNotFoundException e) {
             logger.log(Level.ERROR, "Can`t connect to database ");
+            throw new ExceptionInInitializerError("Can`t connect to database " + e);
         }
 
 
@@ -63,7 +60,7 @@ public class ConnectionFactory {
     private ConnectionFactory() {
     }
 
-    public static Connection getConnection() throws SQLException {
+    static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
     }
 }
